@@ -136,6 +136,9 @@ class Qwen3_VQA:
             if self.model is not None:
                 del self.model
                 self.model = None
+            # Free Comfy-managed weights so Qwen3 can sit fully on GPU.
+            comfy.model_management.unload_all_models()
+            comfy.model_management.soft_empty_cache()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 torch.cuda.ipc_collect()
@@ -153,10 +156,12 @@ class Qwen3_VQA:
             else:
                 quantization_config = None
 
+            # Force full CUDA placement. device_map="auto" can CPU-offload
+            # independently of ComfyUI --disable-dynamic-vram.
             self.model = Qwen3VLForConditionalGeneration.from_pretrained(
                 self.model_checkpoint,
                 dtype=torch.bfloat16 if self.bf16_support else torch.float16,
-                device_map="auto",
+                device_map={"": self.device},
                 attn_implementation=attention,
                 quantization_config=quantization_config,
             )
@@ -241,6 +246,8 @@ class Qwen3_VQA:
                 self.model = None  # set model to None
                 self.current_model_id = None
                 self.current_quantization = None
+                comfy.model_management.unload_all_models()
+                comfy.model_management.soft_empty_cache()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()  # release GPU memory
                     torch.cuda.ipc_collect()

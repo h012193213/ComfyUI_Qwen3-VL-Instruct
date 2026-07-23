@@ -2,6 +2,14 @@
 
 This is an implementation of [Qwen3-VL-Instruct](https://github.com/QwenLM/Qwen3-VL) by [ComfyUI](https://github.com/comfyanonymous/ComfyUI), which includes, but is not limited to, support for text-based queries, video queries, single-image queries, and multi-image queries to generate captions or responses.
 
+## Fork notes (full GPU load)
+
+This fork changes VQA loading so the model is placed fully on CUDA (`device_map` pinned to the Comfy device) instead of Hugging Face `device_map="auto"`, which can CPU-offload layers even when ComfyUI DynamicVRAM is disabled. Before load and after inference (when `keep_model_loaded` is false), Comfy-managed models are unloaded so Qwen3 can occupy VRAM alone.
+
+Extra nodes for sequencing large checkpoints after VQA:
+
+- **Wait For (Qwen3)** / **Wait For String (Qwen3)** — pass MODEL/CLIP/VAE (or a string) through only after a purge/clearCache signal finishes, so diffusion weights do not compete with Qwen3 on the GPU.
+
 ---
 
 ## Basic Workflow
