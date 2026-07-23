@@ -40,6 +40,7 @@ class Qwen3_VQA:
                         "Qwen3-VL-4B-Thinking",
                         "Qwen3-VL-8B-Instruct",
                         "Qwen3-VL-8B-Thinking",
+                        "Huihui-Qwen3-VL-8B-Instruct-abliterated",
                     ],
                     {"default": "Qwen3-VL-4B-Instruct-FP8"},
                 ),
